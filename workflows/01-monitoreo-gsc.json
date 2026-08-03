@@ -1,0 +1,476 @@
+{
+  "name": "SEO 01 · Monitoreo semanal (Search Console)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## SEO 01 · Monitoreo semanal\n\nCompara los ultimos 7 dias de Google Search Console contra los 7 anteriores,\nguarda el historico en Google Sheets y publica en Slack un diagnostico\ngenerado con la Messages API de Claude.\n\n**Antes de activarlo**\n1. Ajusta el nodo `Configuracion`.\n2. Credencial Google OAuth2 con el scope\n   `https://www.googleapis.com/auth/webmasters.readonly`.\n3. Credencial Header Auth con `x-api-key` para Anthropic.\n4. Credenciales de Google Sheets y Slack.",
+        "height": 380,
+        "width": 420,
+        "color": 4
+      },
+      "id": "aa70c513-a970-4380-8c70-c839ab70c6a6",
+      "name": "Nota 01",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 7,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "8f0409f5-8e04-4862-8d04-06cf8c04053c",
+      "name": "Programacion semanal",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -20,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "site-url",
+              "name": "siteUrl",
+              "value": "https://www.ejemplo.com/",
+              "type": "string"
+            },
+            {
+              "id": "descripcion",
+              "name": "descripcionNegocio",
+              "value": "Describe aqui el negocio, su publico objetivo y las paginas prioritarias. Este texto se envia a la IA como contexto.",
+              "type": "string"
+            },
+            {
+              "id": "sheet-id",
+              "name": "sheetId",
+              "value": "REEMPLAZA_CON_EL_ID_DEL_SPREADSHEET",
+              "type": "string"
+            },
+            {
+              "id": "hoja",
+              "name": "hojaHistorico",
+              "value": "Historico",
+              "type": "string"
+            },
+            {
+              "id": "slack",
+              "name": "slackCanal",
+              "value": "seo-reportes",
+              "type": "string"
+            },
+            {
+              "id": "min-impresiones",
+              "name": "minImpresiones",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "id": "umbral-caida",
+              "name": "umbralCaidaPosiciones",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "dc-desde",
+              "name": "distanciaCortaDesde",
+              "value": 4,
+              "type": "number"
+            },
+            {
+              "id": "dc-hasta",
+              "name": "distanciaCortaHasta",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "id": "max-filas-ia",
+              "name": "maxFilasIA",
+              "value": 15,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bdc047e1-bcc0-464e-8bc0-44bbbac04328",
+      "name": "Configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Google Search Console publica datos \"final\" con ~3 dias de retraso.\n// Comparamos los ultimos 7 dias disponibles contra los 7 anteriores.\nconst LAG_DIAS = 3;\n\nconst hoy = new Date();\nconst fin = new Date(hoy);\nfin.setUTCDate(fin.getUTCDate() - LAG_DIAS);\n\nconst inicio = new Date(fin);\ninicio.setUTCDate(inicio.getUTCDate() - 6);\n\nconst finPrevio = new Date(inicio);\nfinPrevio.setUTCDate(finPrevio.getUTCDate() - 1);\n\nconst inicioPrevio = new Date(finPrevio);\ninicioPrevio.setUTCDate(inicioPrevio.getUTCDate() - 6);\n\nconst iso = (d) => d.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    actualInicio: iso(inicio),\n    actualFin: iso(fin),\n    previoInicio: iso(inicioPrevio),\n    previoFin: iso(finPrevio),\n    generadoEn: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "c68ec4a0-c78e-4633-888e-c7c6c98ec959",
+      "name": "Rango de fechas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/webmasters/v3/sites/{{ encodeURIComponent($('Configuracion').first().json.siteUrl) }}/searchAnalytics/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ startDate: $json.actualInicio, endDate: $json.actualFin, dimensions: ['query', 'page'], rowLimit: 5000, dataState: 'final' }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "b7c09d3c-b8c0-4ecf-89c0-a062bac0a1f5",
+      "name": "GSC · Periodo actual",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/webmasters/v3/sites/{{ encodeURIComponent($('Configuracion').first().json.siteUrl) }}/searchAnalytics/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ startDate: $('Rango de fechas').first().json.previoInicio, endDate: $('Rango de fechas').first().json.previoFin, dimensions: ['query', 'page'], rowLimit: 5000, dataState: 'final' }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "783d471e-793d-48b1-863d-43f8773d458b",
+      "name": "GSC · Periodo anterior",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\nconst fechas = $('Rango de fechas').first().json;\n\nconst filasActual = $('GSC · Periodo actual').first().json.rows || [];\nconst filasPrevio = $('GSC · Periodo anterior').first().json.rows || [];\n\nconst clave = (fila) => fila.keys.join(' >>> ');\nconst indicePrevio = new Map(filasPrevio.map((f) => [clave(f), f]));\n\nconst redondear = (n, decimales = 2) => Math.round(n * 10 ** decimales) / 10 ** decimales;\n\nconst filas = [];\nfor (const fila of filasActual) {\n  if (fila.impressions < cfg.minImpresiones) continue;\n\n  const previo = indicePrevio.get(clave(fila));\n  // Delta positivo = mejora (la posicion 1 es mejor que la 10).\n  const deltaPosicion = previo ? redondear(previo.position - fila.position) : null;\n  const deltaClics = previo ? fila.clicks - previo.clicks : fila.clicks;\n\n  let categoria = 'Estable';\n  if (!previo) {\n    categoria = 'Nueva';\n  } else if (deltaPosicion <= -cfg.umbralCaidaPosiciones) {\n    categoria = 'Caida';\n  } else if (deltaPosicion >= cfg.umbralCaidaPosiciones) {\n    categoria = 'Mejora';\n  }\n\n  // \"Distancia corta\": ya rankea en pagina 1-2 y un empujon puede moverla al top 3.\n  const distanciaCorta =\n    fila.position >= cfg.distanciaCortaDesde && fila.position <= cfg.distanciaCortaHasta;\n\n  filas.push({\n    fecha: fechas.actualFin,\n    periodo: fechas.actualInicio + ' a ' + fechas.actualFin,\n    keyword: fila.keys[0],\n    url: fila.keys[1],\n    clics: fila.clicks,\n    impresiones: fila.impressions,\n    ctr: redondear(fila.ctr * 100),\n    posicion: redondear(fila.position),\n    posicionPrevia: previo ? redondear(previo.position) : null,\n    deltaPosicion,\n    clicsPrevios: previo ? previo.clicks : null,\n    deltaClics,\n    categoria,\n    distanciaCorta,\n  });\n}\n\nconst suma = (lista, campo) => lista.reduce((acc, f) => acc + (f[campo] || 0), 0);\nconst promedio = (lista, campo) =>\n  lista.length ? redondear(suma(lista, campo) / lista.length) : 0;\n\nconst caidas = filas\n  .filter((f) => f.categoria === 'Caida')\n  .sort((a, b) => a.deltaPosicion - b.deltaPosicion)\n  .slice(0, cfg.maxFilasIA);\n\nconst mejoras = filas\n  .filter((f) => f.categoria === 'Mejora')\n  .sort((a, b) => b.deltaPosicion - a.deltaPosicion)\n  .slice(0, cfg.maxFilasIA);\n\nconst oportunidades = filas\n  .filter((f) => f.distanciaCorta)\n  .sort((a, b) => b.impresiones - a.impresiones)\n  .slice(0, cfg.maxFilasIA);\n\nconst resumen = {\n  sitio: cfg.siteUrl,\n  periodoActual: fechas.actualInicio + ' a ' + fechas.actualFin,\n  periodoPrevio: fechas.previoInicio + ' a ' + fechas.previoFin,\n  consultasAnalizadas: filas.length,\n  clicsTotales: suma(filas, 'clics'),\n  impresionesTotales: suma(filas, 'impresiones'),\n  posicionMedia: promedio(filas, 'posicion'),\n  totalCaidas: filas.filter((f) => f.categoria === 'Caida').length,\n  totalMejoras: filas.filter((f) => f.categoria === 'Mejora').length,\n  totalDistanciaCorta: filas.filter((f) => f.distanciaCorta).length,\n};\n\nif (filas.length === 0) {\n  throw new Error(\n    'GSC no devolvio filas por encima del umbral de impresiones (' +\n      cfg.minImpresiones +\n      '). Revisa siteUrl y los permisos de la credencial.'\n  );\n}\n\nreturn [{ json: { resumen, filas, caidas, mejoras, oportunidades } }];"
+      },
+      "id": "e3e1294e-e4e1-4ae1-81e1-2628e2e127bb",
+      "name": "Comparar periodos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Dos salidas\n\nRama superior → historico completo en Google Sheets.\nRama inferior → resumen + analisis IA → Slack.",
+        "height": 180,
+        "width": 320,
+        "color": 7
+      },
+      "id": "c8106e55-c710-4cc2-8610-6b2fc510699c",
+      "name": "Nota 01b",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// El nodo de Google Sheets espera un item por fila.\nconst { filas } = $input.first().json;\nreturn filas.map((fila) => ({ json: fila }));"
+      },
+      "id": "e8718ffc-e971-418f-8a71-9322eb7194b5",
+      "name": "Filas a items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.sheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.hojaHistorico }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "649c064e-659c-47e1-829c-0328639c04bb",
+      "name": "Google Sheets · Historico",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1520,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\nconst { resumen, caidas, mejoras, oportunidades } = $input.first().json;\n\nconst tabla = (titulo, lista) => {\n  if (!lista.length) return titulo + ': sin datos relevantes.';\n  const lineas = lista.map(\n    (f) =>\n      '- \"' + f.keyword + '\" | ' + f.url +\n      ' | pos ' + f.posicion + (f.posicionPrevia !== null ? ' (antes ' + f.posicionPrevia + ')' : '') +\n      ' | clics ' + f.clics + ' (' + (f.deltaClics >= 0 ? '+' : '') + f.deltaClics + ')' +\n      ' | impresiones ' + f.impresiones +\n      ' | CTR ' + f.ctr + '%'\n  );\n  return titulo + ':\\n' + lineas.join('\\n');\n};\n\nconst prompt = [\n  'Contexto del sitio: ' + cfg.descripcionNegocio,\n  '',\n  'Resumen del periodo ' + resumen.periodoActual + ' comparado con ' + resumen.periodoPrevio + ':',\n  '- Consultas analizadas: ' + resumen.consultasAnalizadas,\n  '- Clics totales: ' + resumen.clicsTotales,\n  '- Impresiones totales: ' + resumen.impresionesTotales,\n  '- Posicion media: ' + resumen.posicionMedia,\n  '- Consultas que cayeron: ' + resumen.totalCaidas,\n  '- Consultas que mejoraron: ' + resumen.totalMejoras,\n  '- Consultas en distancia corta (pos ' + cfg.distanciaCortaDesde + '-' + cfg.distanciaCortaHasta + '): ' + resumen.totalDistanciaCorta,\n  '',\n  tabla('CAIDAS MAS FUERTES', caidas),\n  '',\n  tabla('MEJORAS MAS FUERTES', mejoras),\n  '',\n  tabla('OPORTUNIDADES EN DISTANCIA CORTA', oportunidades),\n].join('\\n');\n\nconst esquema = {\n  type: 'object',\n  properties: {\n    titular: { type: 'string' },\n    diagnostico: { type: 'string' },\n    riesgos: { type: 'array', items: { type: 'string' } },\n    acciones: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: {\n          prioridad: { type: 'string', enum: ['Alta', 'Media', 'Baja'] },\n          accion: { type: 'string' },\n          keyword: { type: 'string' },\n          url: { type: 'string' },\n          impactoEstimado: { type: 'string' },\n        },\n        required: ['prioridad', 'accion', 'keyword', 'url', 'impactoEstimado'],\n        additionalProperties: false,\n      },\n    },\n  },\n  required: ['titular', 'diagnostico', 'riesgos', 'acciones'],\n  additionalProperties: false,\n};\n\nconst body = {\n  model: 'claude-opus-5',\n  max_tokens: 8000,\n  output_config: {\n    effort: 'medium',\n    format: { type: 'json_schema', schema: esquema },\n  },\n  system:\n    'Eres un consultor SEO senior. Analizas datos reales de Google Search Console y ' +\n    'produces diagnosticos accionables. Se concreto: cada accion debe poder ejecutarse ' +\n    'esta semana por una persona sin repetir lo obvio. No inventes datos que no esten en ' +\n    'la entrada. Responde siempre en espanol neutro.',\n  messages: [{ role: 'user', content: prompt }],\n};\n\nreturn [{ json: { body, resumen } }];"
+      },
+      "id": "630eb015-620e-4e82-810e-acef600eab5c",
+      "name": "Preparar analisis IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 180000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "b7632284-b863-4417-8963-25aaba63273d",
+      "name": "Claude · Diagnostico SEO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "function parsearRespuestaClaude(respuesta) {\n  if (!respuesta || !Array.isArray(respuesta.content)) {\n    throw new Error('Respuesta inesperada de la API de Claude: ' + JSON.stringify(respuesta).slice(0, 500));\n  }\n  if (respuesta.stop_reason === 'refusal') {\n    throw new Error('La API rechazo la solicitud (stop_reason: refusal).');\n  }\n  const bloque = respuesta.content.find((b) => b.type === 'text');\n  if (!bloque) {\n    throw new Error('La respuesta no incluye ningun bloque de texto.');\n  }\n  return JSON.parse(bloque.text);\n}\n\nconst analisis = parsearRespuestaClaude($input.first().json);\nconst { resumen } = $('Preparar analisis IA').first().json;\n\nconst flecha = (n) => (n > 0 ? '▲' : n < 0 ? '▼' : '=');\n\nconst lineasAcciones = analisis.acciones.map((a, i) => {\n  const emoji = a.prioridad === 'Alta' ? '🔴' : a.prioridad === 'Media' ? '🟡' : '🟢';\n  return (\n    emoji + ' *' + (i + 1) + '. ' + a.accion + '*\\n' +\n    '   • Keyword: ' + a.keyword + '\\n' +\n    '   • URL: ' + a.url + '\\n' +\n    '   • Impacto estimado: ' + a.impactoEstimado\n  );\n});\n\nconst mensaje = [\n  '📊 *Reporte SEO semanal* — ' + resumen.sitio,\n  '_' + resumen.periodoActual + ' (vs. ' + resumen.periodoPrevio + ')_',\n  '',\n  '*' + analisis.titular + '*',\n  '',\n  '*Metricas*',\n  '• Clics: ' + resumen.clicsTotales,\n  '• Impresiones: ' + resumen.impresionesTotales,\n  '• Posicion media: ' + resumen.posicionMedia,\n  '• Caidas: ' + resumen.totalCaidas + ' ' + flecha(-resumen.totalCaidas) +\n    '  |  Mejoras: ' + resumen.totalMejoras + ' ' + flecha(resumen.totalMejoras),\n  '• Oportunidades en distancia corta: ' + resumen.totalDistanciaCorta,\n  '',\n  '*Diagnostico*',\n  analisis.diagnostico,\n  '',\n  '*Riesgos detectados*',\n  ...analisis.riesgos.map((r) => '• ' + r),\n  '',\n  '*Plan de accion*',\n  ...lineasAcciones,\n].join('\\n');\n\nreturn [{ json: { mensaje, analisis, resumen } }];"
+      },
+      "id": "83dc7740-84dc-48d3-85dc-7a6686dc7bf9",
+      "name": "Formatear reporte Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1740,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.slackCanal }}",
+          "mode": "name"
+        },
+        "text": "={{ $json.mensaje }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "730b1a29-720b-4896-810b-1703700b1570",
+      "name": "Slack · Reporte semanal",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1960,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Programacion semanal": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "Rango de fechas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rango de fechas": {
+      "main": [
+        [
+          {
+            "node": "GSC · Periodo actual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GSC · Periodo actual": {
+      "main": [
+        [
+          {
+            "node": "GSC · Periodo anterior",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GSC · Periodo anterior": {
+      "main": [
+        [
+          {
+            "node": "Comparar periodos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comparar periodos": {
+      "main": [
+        [
+          {
+            "node": "Filas a items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar analisis IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas a items": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets · Historico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar analisis IA": {
+      "main": [
+        [
+          {
+            "node": "Claude · Diagnostico SEO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Diagnostico SEO": {
+      "main": [
+        [
+          {
+            "node": "Formatear reporte Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear reporte Slack": {
+      "main": [
+        [
+          {
+            "node": "Slack · Reporte semanal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": [
+    {
+      "name": "seo"
+    },
+    {
+      "name": "automatizacion"
+    }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

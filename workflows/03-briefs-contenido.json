@@ -1,0 +1,492 @@
+{
+  "name": "SEO 03 · Briefs de contenido con IA",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## SEO 03 · Briefs de contenido con IA\n\nLee keywords con estado `pendiente` desde Google Sheets, consulta la\nSERP real (Serper.dev) y genera un brief editorial completo con Claude.\nEl resultado se guarda en la hoja `Briefs` y se avisa por Slack.\n\n**Hoja `Keywords` esperada** (fila 1 = cabeceras):\n`keyword | intencion | prioridad | notas | estado`\n\nPon `pendiente` en la columna `estado` para encolar una keyword.\n\nPuedes sustituir Serper.dev por DataForSEO o SerpAPI cambiando el\nnodo `SERP · Top 10` y el nodo `Contexto SERP`.",
+        "height": 420,
+        "width": 440,
+        "color": 4
+      },
+      "id": "0f95a7c5-0e95-4632-8d95-a49f0c95a30c",
+      "name": "Nota 03",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                2
+              ],
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "8f0409f5-8e04-4862-8d04-06cf8c04053c",
+      "name": "Programacion semanal",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -20,
+        120
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b2ba3122-b3ba-42b5-80ba-2dfcb1ba2f8f",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dominio",
+              "name": "dominio",
+              "value": "https://www.ejemplo.com",
+              "type": "string"
+            },
+            {
+              "id": "descripcion",
+              "name": "descripcionNegocio",
+              "value": "Describe aqui a que se dedica la marca, su propuesta de valor y su publico.",
+              "type": "string"
+            },
+            {
+              "id": "tono",
+              "name": "tonoDeVoz",
+              "value": "Cercano, directo y practico. Sin jerga corporativa ni promesas exageradas.",
+              "type": "string"
+            },
+            {
+              "id": "sheet-id",
+              "name": "sheetId",
+              "value": "REEMPLAZA_CON_EL_ID_DEL_SPREADSHEET",
+              "type": "string"
+            },
+            {
+              "id": "hoja-kw",
+              "name": "hojaKeywords",
+              "value": "Keywords",
+              "type": "string"
+            },
+            {
+              "id": "hoja-briefs",
+              "name": "hojaBriefs",
+              "value": "Briefs",
+              "type": "string"
+            },
+            {
+              "id": "slack",
+              "name": "slackCanal",
+              "value": "seo-contenido",
+              "type": "string"
+            },
+            {
+              "id": "max-briefs",
+              "name": "maxBriefs",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "pais",
+              "name": "pais",
+              "value": "mx",
+              "type": "string"
+            },
+            {
+              "id": "idioma",
+              "name": "idioma",
+              "value": "es",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bdc047e1-bcc0-464e-8bc0-44bbbac04328",
+      "name": "Configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.sheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.hojaKeywords }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "5d0b6c82-5e0b-4e15-8b0b-695c5c0b6aef",
+      "name": "Google Sheets · Keywords",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\n\nconst pendientes = $input\n  .all()\n  .map((i) => i.json)\n  .filter((fila) => String(fila.estado || '').trim().toLowerCase() === 'pendiente')\n  .filter((fila) => String(fila.keyword || '').trim().length > 0);\n\nif (pendientes.length === 0) {\n  // Sin trabajo pendiente: cortamos la ejecucion sin marcarla como error.\n  return [];\n}\n\nreturn pendientes.slice(0, cfg.maxBriefs).map((fila) => ({\n  json: {\n    keyword: String(fila.keyword).trim(),\n    intencion: fila.intencion || '',\n    notas: fila.notas || '',\n    prioridad: fila.prioridad || 'Media',\n  },\n}));"
+      },
+      "id": "f7bd0b04-f8bd-4c97-89bd-0e2afabd0fbd",
+      "name": "Limitar lote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ q: $json.keyword, gl: $('Configuracion').first().json.pais, hl: $('Configuracion').first().json.idioma, num: 10 }) }}",
+        "options": {
+          "timeout": 30000,
+          "batching": {
+            "batch": {
+              "batchSize": 2,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "id": "7209e1fd-7109-406a-8009-ded76f09dd44",
+      "name": "SERP · Top 10",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// El nodo HTTP ejecuta una peticion por item y conserva el orden de entrada,\n// asi que el indice i alinea cada respuesta SERP con su keyword original.\nconst entradas = $('Limitar lote').all().map((i) => i.json);\n\nreturn $input.all().map((item, i) => {\n  const serp = item.json;\n  const entrada = entradas[i] || {};\n\n  const organicos = (serp.organic || []).slice(0, 10).map((r, pos) => ({\n    posicion: pos + 1,\n    titulo: r.title || '',\n    enlace: r.link || '',\n    extracto: r.snippet || '',\n  }));\n\n  return {\n    json: {\n      ...entrada,\n      serp: {\n        organicos,\n        preguntas: (serp.peopleAlsoAsk || []).map((p) => p.question).filter(Boolean),\n        relacionadas: (serp.relatedSearches || []).map((r) => r.query).filter(Boolean),\n      },\n    },\n  };\n});"
+      },
+      "id": "446bd6fe-456b-4891-826b-d3d8436bd56b",
+      "name": "Contexto SERP",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\n\nreturn $input.all().map((item) => {\nconst entrada = item.json;\nconst { serp } = entrada;\n\nconst competencia = serp.organicos\n  .map((r) => r.posicion + '. ' + r.titulo + '\\n   ' + r.enlace + '\\n   ' + r.extracto)\n  .join('\\n');\n\nconst prompt = [\n  'Marca / negocio: ' + cfg.descripcionNegocio,\n  'Tono de voz: ' + cfg.tonoDeVoz,\n  'Dominio propio: ' + cfg.dominio,\n  '',\n  'Keyword objetivo: ' + entrada.keyword,\n  entrada.intencion ? 'Intencion declarada: ' + entrada.intencion : '',\n  entrada.notas ? 'Notas del equipo: ' + entrada.notas : '',\n  '',\n  'TOP 10 ORGANICO ACTUAL',\n  competencia || '(sin datos de SERP)',\n  '',\n  'PREGUNTAS FRECUENTES EN LA SERP',\n  serp.preguntas.length ? serp.preguntas.map((p) => '- ' + p).join('\\n') : '(ninguna)',\n  '',\n  'BUSQUEDAS RELACIONADAS',\n  serp.relacionadas.length ? serp.relacionadas.map((r) => '- ' + r).join('\\n') : '(ninguna)',\n  '',\n  'Genera un brief de contenido que permita superar a los resultados actuales: ' +\n    'cubre los angulos que ellos cubren y anade al menos dos que ninguno cubra.',\n]\n  .filter(Boolean)\n  .join('\\n');\n\nconst esquema = {\n  type: 'object',\n  properties: {\n    tituloPropuesto: { type: 'string' },\n    metaDescripcion: { type: 'string' },\n    slug: { type: 'string' },\n    intencionBusqueda: {\n      type: 'string',\n      enum: ['Informacional', 'Comercial', 'Transaccional', 'Navegacional'],\n    },\n    publicoObjetivo: { type: 'string' },\n    anguloDiferencial: { type: 'string' },\n    palabrasObjetivo: { type: 'integer' },\n    keywordsSecundarias: { type: 'array', items: { type: 'string' } },\n    esquema: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: {\n          nivel: { type: 'string', enum: ['H2', 'H3'] },\n          encabezado: { type: 'string' },\n          queCubrir: { type: 'string' },\n        },\n        required: ['nivel', 'encabezado', 'queCubrir'],\n        additionalProperties: false,\n      },\n    },\n    preguntasFrecuentes: { type: 'array', items: { type: 'string' } },\n    enlacesInternosSugeridos: { type: 'array', items: { type: 'string' } },\n    llamadaALaAccion: { type: 'string' },\n  },\n  required: [\n    'tituloPropuesto',\n    'metaDescripcion',\n    'slug',\n    'intencionBusqueda',\n    'publicoObjetivo',\n    'anguloDiferencial',\n    'palabrasObjetivo',\n    'keywordsSecundarias',\n    'esquema',\n    'preguntasFrecuentes',\n    'enlacesInternosSugeridos',\n    'llamadaALaAccion',\n  ],\n  additionalProperties: false,\n};\n\nconst body = {\n  model: 'claude-opus-5',\n  max_tokens: 12000,\n  output_config: {\n    effort: 'high',\n    format: { type: 'json_schema', schema: esquema },\n  },\n  system:\n    'Eres un estratega de contenidos SEO. Produces briefs que un redactor puede ejecutar ' +\n    'sin hacer preguntas: cada seccion del esquema indica que cubrir y por que. Basate en ' +\n    'la SERP real que recibes; no inventes estadisticas ni fuentes. Responde en espanol neutro.',\n  messages: [{ role: 'user', content: prompt }],\n};\n\nreturn { json: { body, keyword: entrada.keyword, prioridad: entrada.prioridad } };\n});"
+      },
+      "id": "c7166427-c616-4294-8916-674dc81665ba",
+      "name": "Preparar brief IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 180000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "20a53b15-1fa5-4982-8ea5-37ef1da5365c",
+      "name": "Claude · Brief de contenido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "function parsearRespuestaClaude(respuesta) {\n  if (!respuesta || !Array.isArray(respuesta.content)) {\n    throw new Error('Respuesta inesperada de la API de Claude: ' + JSON.stringify(respuesta).slice(0, 500));\n  }\n  if (respuesta.stop_reason === 'refusal') {\n    throw new Error('La API rechazo la solicitud (stop_reason: refusal).');\n  }\n  const bloque = respuesta.content.find((b) => b.type === 'text');\n  if (!bloque) {\n    throw new Error('La respuesta no incluye ningun bloque de texto.');\n  }\n  return JSON.parse(bloque.text);\n}\n\nconst contextos = $('Preparar brief IA').all().map((i) => i.json);\nconst salida = [];\n\n$input.all().forEach((item, i) => {\n  const brief = parsearRespuestaClaude(item.json);\n  const contexto = contextos[i] || {};\n\n  const esquemaTexto = brief.esquema\n    .map((s) => (s.nivel === 'H2' ? '## ' : '### ') + s.encabezado + ' — ' + s.queCubrir)\n    .join('\\n');\n\n  salida.push({\n    json: {\n      fecha: new Date().toISOString().slice(0, 10),\n      keyword: contexto.keyword,\n      prioridad: contexto.prioridad,\n      titulo: brief.tituloPropuesto,\n      slug: brief.slug,\n      metaDescripcion: brief.metaDescripcion,\n      intencion: brief.intencionBusqueda,\n      publico: brief.publicoObjetivo,\n      angulo: brief.anguloDiferencial,\n      palabrasObjetivo: brief.palabrasObjetivo,\n      keywordsSecundarias: brief.keywordsSecundarias.join(', '),\n      esquema: esquemaTexto,\n      preguntasFrecuentes: brief.preguntasFrecuentes.join(' | '),\n      enlacesInternos: brief.enlacesInternosSugeridos.join(' | '),\n      cta: brief.llamadaALaAccion,\n      estado: 'Brief listo',\n    },\n  });\n});\n\nreturn salida;"
+      },
+      "id": "82807f07-8180-4d74-8480-822d8380809a",
+      "name": "Parsear briefs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.sheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.hojaBriefs }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "7e5897bb-7d58-4628-8058-9ae17f58994e",
+      "name": "Google Sheets · Briefs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1980,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const briefs = $('Parsear briefs').all().map((i) => i.json);\nconst cfg = $('Configuracion').first().json;\n\nconst bloques = briefs.map((b, i) => {\n  const emoji = b.prioridad === 'Alta' ? '🔴' : b.prioridad === 'Baja' ? '🟢' : '🟡';\n  return [\n    emoji + ' *' + (i + 1) + '. ' + b.keyword + '*',\n    '   • Titulo: ' + b.titulo,\n    '   • Intencion: ' + b.intencion + ' · Extension objetivo: ' + b.palabrasObjetivo + ' palabras',\n    '   • Angulo: ' + b.angulo,\n    '   • Secundarias: ' + b.keywordsSecundarias,\n  ].join('\\n');\n});\n\nconst mensaje = [\n  '📝 *' + briefs.length + ' brief(s) de contenido listo(s)*',\n  '_Guardados en la hoja \"' + cfg.hojaBriefs + '\"_',\n  '',\n  ...bloques,\n].join('\\n\\n');\n\nreturn [{ json: { mensaje, total: briefs.length } }];"
+      },
+      "id": "8839316d-8739-4fda-8639-2e4785392cb4",
+      "name": "Resumen para Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.slackCanal }}",
+          "mode": "name"
+        },
+        "text": "={{ $json.mensaje }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "5a0e42ac-5b0e-443f-8c0e-45d25d0e4765",
+      "name": "Slack · Briefs listos",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        2200,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Programacion semanal": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets · Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets · Keywords": {
+      "main": [
+        [
+          {
+            "node": "Limitar lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limitar lote": {
+      "main": [
+        [
+          {
+            "node": "SERP · Top 10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SERP · Top 10": {
+      "main": [
+        [
+          {
+            "node": "Contexto SERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto SERP": {
+      "main": [
+        [
+          {
+            "node": "Preparar brief IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar brief IA": {
+      "main": [
+        [
+          {
+            "node": "Claude · Brief de contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Brief de contenido": {
+      "main": [
+        [
+          {
+            "node": "Parsear briefs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear briefs": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets · Briefs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Resumen para Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumen para Slack": {
+      "main": [
+        [
+          {
+            "node": "Slack · Briefs listos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": [
+    {
+      "name": "seo"
+    },
+    {
+      "name": "contenido"
+    },
+    {
+      "name": "automatizacion"
+    }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

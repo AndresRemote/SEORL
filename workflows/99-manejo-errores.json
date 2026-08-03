@@ -1,0 +1,144 @@
+{
+  "name": "SEO 99 · Manejo de errores",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## SEO 99 · Manejo de errores\n\nWorkflow de error compartido. Para activarlo:\n\n1. Abre cada workflow SEO.\n2. Menu `...` → **Settings** → **Error Workflow**.\n3. Selecciona `SEO 99 · Manejo de errores`.\n\nCada vez que una ejecucion falle recibiras el aviso en Slack con\nel nodo exacto que rompio y el enlace a la ejecucion.",
+        "height": 300,
+        "width": 400,
+        "color": 3
+      },
+      "id": "b59aee16-b69a-4fa9-839a-eaf0b49aec83",
+      "name": "Nota 99",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -60
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "bb7bf689-ba7b-44f6-897b-f363b87bf1d0",
+      "name": "Al fallar un workflow",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        40,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "slack",
+              "name": "slackCanal",
+              "value": "seo-alertas",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bdc047e1-bcc0-464e-8bc0-44bbbac04328",
+      "name": "Configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const evento = $input.first().json;\n\nconst wf = evento.workflow || {};\nconst ej = evento.execution || {};\nconst error = ej.error || {};\n\nconst nodoFallido = ej.lastNodeExecuted || error.node?.name || 'desconocido';\nconst detalle = (error.message || 'Sin mensaje de error').slice(0, 900);\n\nconst mensaje = [\n  '🚨 *Fallo en un workflow de SEO*',\n  '',\n  '• Workflow: *' + (wf.name || 'sin nombre') + '*',\n  '• Nodo: ' + nodoFallido,\n  '• Modo: ' + (ej.mode || 'desconocido'),\n  '• Momento: ' + new Date().toISOString(),\n  ej.url ? '• Ejecucion: ' + ej.url : '',\n  '',\n  '*Detalle*',\n  '\\`\\`\\`' + detalle + '\\`\\`\\`',\n]\n  .filter(Boolean)\n  .join('\\n');\n\nreturn [{\n  json: {\n    mensaje,\n    workflowNombre: wf.name || '',\n    workflowId: wf.id || '',\n    nodo: nodoFallido,\n    error: detalle,\n  },\n}];"
+      },
+      "id": "12b4f413-11b4-4280-84b4-f73913b4f5a6",
+      "name": "Formatear error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.slackCanal }}",
+          "mode": "name"
+        },
+        "text": "={{ $json.mensaje }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "839532df-8295-414c-8595-360584953472",
+      "name": "Slack · Alerta de error",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Al fallar un workflow": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "Formatear error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear error": {
+      "main": [
+        [
+          {
+            "node": "Slack · Alerta de error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": [
+    {
+      "name": "seo"
+    },
+    {
+      "name": "infraestructura"
+    }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
