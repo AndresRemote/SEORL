@@ -1,0 +1,534 @@
+{
+  "name": "SEO 02 · Auditoria tecnica on-page",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## SEO 02 · Auditoria tecnica on-page\n\nLee el sitemap (soporta indices de sitemaps), rastrea cada URL,\nevalua title, meta description, H1, canonical, robots, contenido,\nimagenes sin alt y datos estructurados, y publica un plan de\ncorreccion priorizado.\n\n**Cuidado con el volumen:** ajusta `maxUrls` y el `batching` del\nnodo `Rastrear paginas` para no saturar el servidor auditado.",
+        "height": 340,
+        "width": 420,
+        "color": 4
+      },
+      "id": "7b208142-7c20-42d5-8920-7e1c7a207faf",
+      "name": "Nota 02",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "047df750-057d-48e3-867d-fa76077dfc09",
+      "name": "Programacion diaria",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -20,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sitemap",
+              "name": "sitemapUrl",
+              "value": "https://www.ejemplo.com/sitemap.xml",
+              "type": "string"
+            },
+            {
+              "id": "descripcion",
+              "name": "descripcionNegocio",
+              "value": "Describe aqui el negocio y las plantillas de pagina mas importantes del sitio.",
+              "type": "string"
+            },
+            {
+              "id": "sheet-id",
+              "name": "sheetId",
+              "value": "REEMPLAZA_CON_EL_ID_DEL_SPREADSHEET",
+              "type": "string"
+            },
+            {
+              "id": "hoja",
+              "name": "hojaAuditoria",
+              "value": "Auditoria",
+              "type": "string"
+            },
+            {
+              "id": "slack",
+              "name": "slackCanal",
+              "value": "seo-reportes",
+              "type": "string"
+            },
+            {
+              "id": "max-urls",
+              "name": "maxUrls",
+              "value": 100,
+              "type": "number"
+            },
+            {
+              "id": "max-sitemaps",
+              "name": "maxSitemaps",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "excluir",
+              "name": "excluirPatron",
+              "value": "/tag/|/author/|\\\\?",
+              "type": "string"
+            },
+            {
+              "id": "titulo-min",
+              "name": "tituloMin",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "titulo-max",
+              "name": "tituloMax",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "id": "desc-max",
+              "name": "descripcionMax",
+              "value": 160,
+              "type": "number"
+            },
+            {
+              "id": "palabras-min",
+              "name": "palabrasMin",
+              "value": 300,
+              "type": "number"
+            },
+            {
+              "id": "max-paginas-ia",
+              "name": "maxPaginasIA",
+              "value": 15,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bdc047e1-bcc0-464e-8bc0-44bbbac04328",
+      "name": "Configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.sitemapUrl }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "ebafea71-eaaf-48de-89af-e74be8afe5b8",
+      "name": "Descargar sitemap raiz",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\nconst xml = $input.first().json.data || '';\n\nif (!xml.includes('<loc>')) {\n  throw new Error('El sitemap no contiene etiquetas <loc>. Revisa la URL: ' + cfg.sitemapUrl);\n}\n\nconst locs = [...xml.matchAll(/<loc>\\s*([^<]+?)\\s*<\\/loc>/gi)].map((m) => m[1]);\n\n// Si es un indice de sitemaps, devolvemos los hijos; si no, el propio sitemap.\nconst esIndice = /<sitemapindex/i.test(xml);\nconst objetivos = esIndice ? locs.slice(0, cfg.maxSitemaps) : [cfg.sitemapUrl];\n\nreturn objetivos.map((sitemapUrl) => ({ json: { sitemapUrl, esIndice } }));"
+      },
+      "id": "fe425f94-ff42-4127-8042-62ba0142644d",
+      "name": "Detectar sitemaps",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.sitemapUrl }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 3,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "id": "3a82c91a-3b82-4aad-8882-c5f43982c787",
+      "name": "Descargar sitemaps",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\n\nconst vistas = new Set();\nconst urls = [];\n\nfor (const item of $input.all()) {\n  const xml = item.json.data || '';\n  for (const match of xml.matchAll(/<loc>\\s*([^<]+?)\\s*<\\/loc>/gi)) {\n    const url = match[1].trim();\n    if (url.endsWith('.xml')) continue;          // sitemaps anidados\n    if (vistas.has(url)) continue;               // duplicados entre sitemaps\n    if (cfg.excluirPatron && new RegExp(cfg.excluirPatron, 'i').test(url)) continue;\n    vistas.add(url);\n    urls.push(url);\n  }\n}\n\nif (urls.length === 0) {\n  throw new Error('No se encontro ninguna URL auditable en el sitemap.');\n}\n\nreturn urls.slice(0, cfg.maxUrls).map((url) => ({ json: { url } }));"
+      },
+      "id": "4af65857-49f6-46c4-8cf6-5b7d4bf659ea",
+      "name": "Extraer URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-seo-audit/1.0 (+auditoria interna)"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 5,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "id": "340858d1-3308-473e-8208-55ab31085418",
+      "name": "Rastrear paginas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\n\nconst texto = (html, regex) => {\n  const m = html.match(regex);\n  return m ? m[1].replace(/\\s+/g, ' ').trim() : '';\n};\n\nconst resultados = [];\n\nfor (const item of $input.all()) {\n  const respuesta = item.json;\n  const url = respuesta.url || item.json.url || '';\n  const estado = respuesta.statusCode ?? 0;\n  const html = typeof respuesta.body === 'string' ? respuesta.body : '';\n\n  const titulo = texto(html, /<title[^>]*>([\\s\\S]*?)<\\/title>/i);\n  const metaDescripcion = texto(\n    html,\n    /<meta[^>]+name=[\"']description[\"'][^>]*content=[\"']([\\s\\S]*?)[\"']/i\n  );\n  const canonical = texto(html, /<link[^>]+rel=[\"']canonical[\"'][^>]*href=[\"']([^\"']+)[\"']/i);\n  const metaRobots = texto(html, /<meta[^>]+name=[\"']robots[\"'][^>]*content=[\"']([^\"']+)[\"']/i);\n  const ogTitulo = texto(html, /<meta[^>]+property=[\"']og:title[\"'][^>]*content=[\"']([\\s\\S]*?)[\"']/i);\n\n  const h1s = [...html.matchAll(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/gi)].map((m) =>\n    m[1].replace(/<[^>]+>/g, '').replace(/\\s+/g, ' ').trim()\n  );\n  const h2s = [...html.matchAll(/<h2[^>]*>([\\s\\S]*?)<\\/h2>/gi)].length;\n\n  const imagenes = [...html.matchAll(/<img\\b[^>]*>/gi)];\n  const imagenesSinAlt = imagenes.filter((m) => !/\\balt\\s*=\\s*[\"'][^\"']+[\"']/i.test(m[0])).length;\n\n  const cuerpo = html\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n  const palabras = cuerpo ? cuerpo.split(' ').length : 0;\n\n  const tieneSchema = /application\\/ld\\+json/i.test(html);\n  const noindex = /noindex/i.test(metaRobots);\n\n  const problemas = [];\n  if (estado >= 500) problemas.push({ gravedad: 'critica', detalle: 'Error de servidor ' + estado });\n  else if (estado >= 400) problemas.push({ gravedad: 'critica', detalle: 'Error de cliente ' + estado });\n  else if (estado >= 300) problemas.push({ gravedad: 'media', detalle: 'Redireccion ' + estado + ' desde el sitemap' });\n\n  if (noindex) problemas.push({ gravedad: 'critica', detalle: 'La pagina tiene meta robots noindex' });\n  if (!titulo) problemas.push({ gravedad: 'critica', detalle: 'Falta la etiqueta <title>' });\n  else if (titulo.length < cfg.tituloMin) problemas.push({ gravedad: 'media', detalle: 'Title demasiado corto (' + titulo.length + ' caracteres)' });\n  else if (titulo.length > cfg.tituloMax) problemas.push({ gravedad: 'baja', detalle: 'Title demasiado largo (' + titulo.length + ' caracteres)' });\n\n  if (!metaDescripcion) problemas.push({ gravedad: 'media', detalle: 'Falta la meta description' });\n  else if (metaDescripcion.length > cfg.descripcionMax) problemas.push({ gravedad: 'baja', detalle: 'Meta description demasiado larga (' + metaDescripcion.length + ' caracteres)' });\n\n  if (h1s.length === 0) problemas.push({ gravedad: 'media', detalle: 'La pagina no tiene H1' });\n  if (h1s.length > 1) problemas.push({ gravedad: 'baja', detalle: 'Hay ' + h1s.length + ' etiquetas H1' });\n  if (!canonical) problemas.push({ gravedad: 'media', detalle: 'Falta el enlace canonical' });\n  if (palabras < cfg.palabrasMin && estado < 300) problemas.push({ gravedad: 'media', detalle: 'Contenido escaso (' + palabras + ' palabras)' });\n  if (imagenesSinAlt > 0) problemas.push({ gravedad: 'baja', detalle: imagenesSinAlt + ' imagenes sin atributo alt' });\n  if (!tieneSchema) problemas.push({ gravedad: 'baja', detalle: 'Sin datos estructurados JSON-LD' });\n\n  const criticos = problemas.filter((p) => p.gravedad === 'critica').length;\n  const medios = problemas.filter((p) => p.gravedad === 'media').length;\n  const bajos = problemas.filter((p) => p.gravedad === 'baja').length;\n  const puntuacion = Math.max(0, 100 - criticos * 25 - medios * 8 - bajos * 3);\n\n  resultados.push({\n    fecha: new Date().toISOString().slice(0, 10),\n    url,\n    estado,\n    titulo,\n    longitudTitulo: titulo.length,\n    metaDescripcion,\n    longitudDescripcion: metaDescripcion.length,\n    h1: h1s[0] || '',\n    numeroH1: h1s.length,\n    numeroH2: h2s,\n    canonical,\n    metaRobots,\n    ogTitulo,\n    palabras,\n    imagenes: imagenes.length,\n    imagenesSinAlt,\n    tieneSchema,\n    noindex,\n    problemasCriticos: criticos,\n    problemasMedios: medios,\n    problemasBajos: bajos,\n    puntuacion,\n    problemas: problemas.map((p) => p.gravedad.toUpperCase() + ': ' + p.detalle).join(' | '),\n  });\n}\n\nreturn resultados.map((json) => ({ json }));"
+      },
+      "id": "6c4e60fb-6b4e-4f68-8e4e-64216d4e628e",
+      "name": "Analizar HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.sheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.hojaAuditoria }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "510aac00-520a-4d93-830a-af26540ab0b9",
+      "name": "Google Sheets · Auditoria",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1740,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cfg = $('Configuracion').first().json;\nconst paginas = $input.all().map((i) => i.json);\n\nconst totalCriticos = paginas.reduce((a, p) => a + p.problemasCriticos, 0);\nconst totalMedios = paginas.reduce((a, p) => a + p.problemasMedios, 0);\nconst totalBajos = paginas.reduce((a, p) => a + p.problemasBajos, 0);\nconst puntuacionMedia = Math.round(\n  paginas.reduce((a, p) => a + p.puntuacion, 0) / (paginas.length || 1)\n);\n\nconst peores = [...paginas]\n  .sort((a, b) => a.puntuacion - b.puntuacion)\n  .slice(0, cfg.maxPaginasIA);\n\n// Agrupamos por tipo de problema para que la IA vea patrones, no casos sueltos.\nconst frecuencias = {};\nfor (const p of paginas) {\n  for (const problema of (p.problemas ? p.problemas.split(' | ') : [])) {\n    const tipo = problema.replace(/\\d+/g, 'N');\n    frecuencias[tipo] = (frecuencias[tipo] || 0) + 1;\n  }\n}\nconst patrones = Object.entries(frecuencias)\n  .sort((a, b) => b[1] - a[1])\n  .slice(0, 20)\n  .map(([tipo, veces]) => '- ' + tipo + ' → ' + veces + ' paginas');\n\nconst detallePeores = peores.map(\n  (p) =>\n    '- ' + p.url + ' (puntuacion ' + p.puntuacion + ', HTTP ' + p.estado + ', ' + p.palabras + ' palabras)\\n' +\n    '  problemas: ' + (p.problemas || 'ninguno')\n);\n\nconst resumen = {\n  sitio: cfg.sitemapUrl,\n  paginasAuditadas: paginas.length,\n  puntuacionMedia,\n  totalCriticos,\n  totalMedios,\n  totalBajos,\n};\n\nconst prompt = [\n  'Contexto del sitio: ' + cfg.descripcionNegocio,\n  '',\n  'Auditoria tecnica on-page de ' + paginas.length + ' paginas.',\n  'Puntuacion media: ' + puntuacionMedia + '/100.',\n  'Problemas criticos: ' + totalCriticos + ' | medios: ' + totalMedios + ' | bajos: ' + totalBajos,\n  '',\n  'PATRONES MAS FRECUENTES',\n  ...patrones,\n  '',\n  'PAGINAS CON PEOR PUNTUACION',\n  ...detallePeores,\n].join('\\n');\n\nconst esquema = {\n  type: 'object',\n  properties: {\n    titular: { type: 'string' },\n    diagnostico: { type: 'string' },\n    correccionesPrioritarias: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: {\n          prioridad: { type: 'string', enum: ['Alta', 'Media', 'Baja'] },\n          problema: { type: 'string' },\n          solucion: { type: 'string' },\n          paginasAfectadas: { type: 'string' },\n          esfuerzo: { type: 'string', enum: ['Bajo', 'Medio', 'Alto'] },\n        },\n        required: ['prioridad', 'problema', 'solucion', 'paginasAfectadas', 'esfuerzo'],\n        additionalProperties: false,\n      },\n    },\n    gananciasRapidas: { type: 'array', items: { type: 'string' } },\n  },\n  required: ['titular', 'diagnostico', 'correccionesPrioritarias', 'gananciasRapidas'],\n  additionalProperties: false,\n};\n\nconst body = {\n  model: 'claude-opus-5',\n  max_tokens: 8000,\n  output_config: {\n    effort: 'medium',\n    format: { type: 'json_schema', schema: esquema },\n  },\n  system:\n    'Eres un especialista en SEO tecnico. Recibes el resultado de un rastreo on-page y ' +\n    'devuelves un plan de correccion priorizado por impacto/esfuerzo. Agrupa problemas ' +\n    'repetidos en una sola correccion sistemica en lugar de listar pagina por pagina. ' +\n    'No inventes datos. Responde en espanol neutro.',\n  messages: [{ role: 'user', content: prompt }],\n};\n\nreturn [{ json: { body, resumen } }];"
+      },
+      "id": "3be2c617-3ae2-4484-8de2-c93d3ce2c7aa",
+      "name": "Preparar auditoria IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1740,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 180000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "id": "78f2f9c8-79f2-4b5b-8af2-fcee7bf2fe81",
+      "name": "Claude · Plan de correccion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1960,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "function parsearRespuestaClaude(respuesta) {\n  if (!respuesta || !Array.isArray(respuesta.content)) {\n    throw new Error('Respuesta inesperada de la API de Claude: ' + JSON.stringify(respuesta).slice(0, 500));\n  }\n  if (respuesta.stop_reason === 'refusal') {\n    throw new Error('La API rechazo la solicitud (stop_reason: refusal).');\n  }\n  const bloque = respuesta.content.find((b) => b.type === 'text');\n  if (!bloque) {\n    throw new Error('La respuesta no incluye ningun bloque de texto.');\n  }\n  return JSON.parse(bloque.text);\n}\n\nconst analisis = parsearRespuestaClaude($input.first().json);\nconst { resumen } = $('Preparar auditoria IA').first().json;\n\nconst semaforo = resumen.totalCriticos > 0 ? '🔴' : resumen.puntuacionMedia < 80 ? '🟡' : '🟢';\n\nconst correcciones = analisis.correccionesPrioritarias.map((c, i) => {\n  const emoji = c.prioridad === 'Alta' ? '🔴' : c.prioridad === 'Media' ? '🟡' : '🟢';\n  return (\n    emoji + ' *' + (i + 1) + '. ' + c.problema + '*\\n' +\n    '   • Solucion: ' + c.solucion + '\\n' +\n    '   • Alcance: ' + c.paginasAfectadas + '\\n' +\n    '   • Esfuerzo: ' + c.esfuerzo\n  );\n});\n\nconst mensaje = [\n  semaforo + ' *Auditoria tecnica SEO* — ' + resumen.sitio,\n  '',\n  '*' + analisis.titular + '*',\n  '',\n  '*Estado general*',\n  '• Paginas auditadas: ' + resumen.paginasAuditadas,\n  '• Puntuacion media: ' + resumen.puntuacionMedia + '/100',\n  '• Problemas criticos: ' + resumen.totalCriticos,\n  '• Problemas medios: ' + resumen.totalMedios,\n  '• Problemas menores: ' + resumen.totalBajos,\n  '',\n  '*Diagnostico*',\n  analisis.diagnostico,\n  '',\n  '*Correcciones prioritarias*',\n  ...correcciones,\n  '',\n  '*Ganancias rapidas*',\n  ...analisis.gananciasRapidas.map((g) => '⚡ ' + g),\n].join('\\n');\n\nreturn [{ json: { mensaje, analisis, resumen } }];"
+      },
+      "id": "5077e289-4f77-40f6-8e77-df634d77ddd0",
+      "name": "Formatear auditoria Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Configuracion').first().json.slackCanal }}",
+          "mode": "name"
+        },
+        "text": "={{ $json.mensaje }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "90c2df41-8fc2-4dae-8ec2-dc1b8dc2da88",
+      "name": "Slack · Auditoria",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        2400,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Programacion diaria": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "Descargar sitemap raiz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar sitemap raiz": {
+      "main": [
+        [
+          {
+            "node": "Detectar sitemaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detectar sitemaps": {
+      "main": [
+        [
+          {
+            "node": "Descargar sitemaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar sitemaps": {
+      "main": [
+        [
+          {
+            "node": "Extraer URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer URLs": {
+      "main": [
+        [
+          {
+            "node": "Rastrear paginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rastrear paginas": {
+      "main": [
+        [
+          {
+            "node": "Analizar HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar HTML": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets · Auditoria",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar auditoria IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar auditoria IA": {
+      "main": [
+        [
+          {
+            "node": "Claude · Plan de correccion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Plan de correccion": {
+      "main": [
+        [
+          {
+            "node": "Formatear auditoria Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear auditoria Slack": {
+      "main": [
+        [
+          {
+            "node": "Slack · Auditoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": [
+    {
+      "name": "seo"
+    },
+    {
+      "name": "automatizacion"
+    }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

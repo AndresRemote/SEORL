@@ -1,0 +1,17 @@
+{
+  "name": "seorl",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automatizaciones SEO para n8n: monitoreo de Search Console, auditoria tecnica y briefs de contenido con IA.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/validate.mjs",
+    "test": "node scripts/test-nodos.mjs",
+    "check": "npm run build && npm run validate && npm test"
+  },
+  "license": "UNLICENSED"
+}
