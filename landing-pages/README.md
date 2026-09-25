@@ -2,9 +2,9 @@
 
 Landing pages built in Webflow from the **lmonboarding** funnel template (`a-players.remotelatinos.com/lmonboarding`).
 
-| Page | Webflow site | Status | Folder |
+| Page | Webflow sites | Status | Folder |
 | --- | --- | --- | --- |
-| `/medical-virtual-assistant-services` | Copy of Remote Latinos (`remote-latinos-site-87845230195a2b7a9ad`) | Draft | [`medical-virtual-assistant-services/`](medical-virtual-assistant-services/) |
+| `/medical-virtual-assistant-services` | Remote Latinos (`remote-latinos-site`, production) and Copy of Remote Latinos (`remote-latinos-site-87845230195a2b7a9ad`) | Draft in both | [`medical-virtual-assistant-services/`](medical-virtual-assistant-services/) |
 
 ## What's in a page folder
 
@@ -33,7 +33,17 @@ Landing pages built in Webflow from the **lmonboarding** funnel template (`a-pla
 
 ## Reusing the template for the next cluster page
 
-1. Duplicate the Webflow page (Pages panel → page settings → Duplicate). All `lp-` styles are already in the site.
+1. Duplicate the Webflow page (Pages panel → page settings → Duplicate). All `lp-` styles are already in both sites.
 2. Change the page title, slug and SEO fields, and keep it as Draft.
 3. Edit text in place, or copy this folder, edit the HTML, and re-import sections **without** CSS (the classes already exist).
 4. Regenerate `faq.json` and `schema.json` and update the page's JSON-LD.
+
+## Copying a page to another Webflow site
+
+Page duplication only works inside one site, so a page is copied to another site by rebuilding it from its folder. This is how the production copy of `/medical-virtual-assistant-services` was made:
+
+1. Create the page as a draft with the same title, slug, SEO and Open Graph fields.
+2. Build the shell: `Prashant's Nav`, then `<div class="page-wrapper"><main class="main-wrapper"></main></div>` with `Global Styles` first and `Footer` + `pop-up-wrapper` last.
+3. Import `build/01…12` into `main-wrapper` in order. Include the CSS when the target site has no `lp-` styles yet; leave it out when it already has them.
+4. Repeat the importer fixes: the video Embed in `.lp-case-video`, the DOM id + page-section link for `#lp-solution`, and removing the custom `href` attribute from every link.
+5. Add `schema.json` as the page JSON-LD and `build/page-custom-code.html` as the page head/footer code.

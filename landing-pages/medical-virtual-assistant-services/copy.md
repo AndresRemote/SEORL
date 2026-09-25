@@ -2,14 +2,16 @@
 
 | | |
 | --- | --- |
-| **Webflow site** | Copy of Remote Latinos \| Hire Top Talent From Latin America (`remote-latinos-site-87845230195a2b7a9ad`, site id `6a10ca56677d749c30f40927`) |
-| **Page** | "Medical Virtual Assistant Services", page id `6ab6caf60be4800b5508e77a` |
-| **Status** | **Draft** at the root of the Pages panel (not published) |
+| **Production site** | Remote Latinos \| Hire Top Talent From Latin America (`remote-latinos-site`, site id `65966d211341b0c904b83043`), page id `6ab6e9778639a31507407a14` |
+| **Copy site** | Copy of Remote Latinos \| Hire Top Talent From Latin America (`remote-latinos-site-87845230195a2b7a9ad`, site id `6a10ca56677d749c30f40927`), page id `6ab6caf60be4800b5508e77a` |
+| **Page** | "Medical Virtual Assistant Services" |
+| **Status** | **Draft** in both sites, at the root of the Pages panel (not published) |
+| **Sync** | Both pages were built from the same `build/` files and are identical: same sections, classes, links, embed, JSON-LD and page code. They don't sync, so an edit made in one site must be repeated in the other |
 | **Path** | `/medical-virtual-assistant-services` |
 | **Template** | `a-players.remotelatinos.com/lmonboarding` (GoHighLevel funnel, supplied as a PDF export) |
 | **Build source** | `build/*.html` + `build/*.css`, one file pair per section, imported with Webflow's HTML/CSS importer |
 
-## SEO settings (set in Webflow)
+## SEO settings (set in Webflow, both sites)
 
 | Field | Value |
 | --- | --- |
