@@ -1,0 +1,35 @@
+<!-- ===== Page settings > Custom code > Inside <head> tag ===== -->
+<!-- Inter weights used by the lp- landing page sections (800/900 headings) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Hide the default disclosure marker on the FAQ accordions (Safari) */
+.lp-faq-q::-webkit-details-marker { display: none; }
+.lp-faq-item[open] .lp-faq-caret { transform: rotate(180deg); }
+</style>
+
+<!-- ===== Page settings > Custom code > Before </body> tag ===== -->
+<!-- Same delayed pop-up behavior as the other landing pages (shows #pop-up-wrapper once per day) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
+<script>
+(function () {
+  var delay = 12; // pop-up delay in seconds
+  var popupId = "pop-up-wrapper";
+  function init() {
+    if (!window.Cookies || Cookies.get('alert')) return;
+    setTimeout(function () {
+      var popup = document.getElementById(popupId);
+      if (popup) {
+        popup.style.display = "flex";
+        Cookies.set('alert', true, { expires: 1 });
+      }
+    }, delay * 1000);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>

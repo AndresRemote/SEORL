@@ -1,0 +1,23 @@
+.lp-hipaa { padding-top: 88px; padding-bottom: 88px; padding-left: 24px; padding-right: 24px; background-color: #ffffff; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #150a26; }
+.lp-hipaa-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 64px; row-gap: 40px; align-items: center; max-width: 1140px; margin-left: auto; margin-right: auto; }
+.lp-hipaa-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.lp-eyebrow-purple { display: inline-block; margin-bottom: 18px; padding-top: 8px; padding-bottom: 8px; padding-left: 16px; padding-right: 16px; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom-left-radius: 999px; border-bottom-right-radius: 999px; background-color: #faf5ff; color: #7e22ce; font-size: 12px; line-height: 1.4; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
+.lp-hipaa-text { margin-top: 0px; margin-bottom: 16px; font-size: 18px; line-height: 1.7; color: #4b5563; }
+.lp-inline-link { color: #7e22ce; font-weight: 700; text-decoration: underline; }
+.lp-hipaa-card { display: flex; flex-direction: column; row-gap: 24px; padding-top: 36px; padding-bottom: 36px; padding-left: 36px; padding-right: 36px; border-top-left-radius: 24px; border-top-right-radius: 24px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; border-top-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-right-width: 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-right-style: solid; border-top-color: #e4ccf5; border-bottom-color: #e4ccf5; border-left-color: #e4ccf5; border-right-color: #e4ccf5; background-color: #ffffff; box-shadow: 0 24px 64px rgba(142, 68, 173, 0.16); }
+.lp-hipaa-row { display: flex; align-items: flex-start; column-gap: 18px; }
+.lp-hipaa-icon { display: flex; justify-content: center; align-items: center; flex-shrink: 0; width: 46px; height: 46px; border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; background-color: #faf5ff; font-size: 22px; line-height: 1; }
+.lp-hipaa-body { display: flex; flex-direction: column; row-gap: 4px; }
+.lp-hipaa-label { font-size: 18px; line-height: 1.3; font-weight: 800; color: #150a26; }
+.lp-hipaa-desc { font-size: 15.5px; line-height: 1.55; color: #52525b; }
+@media screen and (max-width: 991px) {
+  .lp-hipaa-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media screen and (max-width: 767px) {
+  .lp-hipaa { padding-top: 64px; padding-bottom: 64px; }
+  .lp-hipaa-card { padding-top: 26px; padding-bottom: 26px; padding-left: 22px; padding-right: 22px; }
+  .lp-hipaa-text { font-size: 17px; }
+}
+@media screen and (max-width: 479px) {
+  .lp-hipaa { padding-left: 16px; padding-right: 16px; }
+}

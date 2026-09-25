@@ -1,0 +1,30 @@
+.lp-tasks { padding-top: 88px; padding-bottom: 88px; padding-left: 24px; padding-right: 24px; background-color: #fcfaff; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #150a26; }
+.lp-tasks-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 22px; row-gap: 22px; max-width: 1200px; margin-left: auto; margin-right: auto; margin-bottom: 26px; }
+.lp-task-card { padding-top: 28px; padding-bottom: 30px; padding-left: 26px; padding-right: 26px; border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; border-top-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-right-width: 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-right-style: solid; border-top-color: #dcaeea; border-bottom-color: #dcaeea; border-left-color: #dcaeea; border-right-color: #dcaeea; background-color: #ffffff; }
+.lp-task-icon { display: flex; justify-content: center; align-items: center; width: 56px; height: 56px; margin-bottom: 20px; border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; background-color: #f3f0ff; font-size: 28px; line-height: 1; }
+.lp-task-title { margin-top: 0px; margin-bottom: 16px; font-size: 19px; line-height: 1.3; font-weight: 800; color: #150a26; }
+.lp-task-list { margin-top: 0px; margin-bottom: 0px; padding-left: 0px; list-style-type: none; display: flex; flex-direction: column; row-gap: 12px; }
+.lp-task-li { display: flex; align-items: flex-start; column-gap: 10px; font-size: 15.5px; line-height: 1.45; color: #1f2937; }
+.lp-li-check { display: flex; justify-content: center; align-items: center; flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; border-top-left-radius: 50%; border-top-right-radius: 50%; border-bottom-left-radius: 50%; border-bottom-right-radius: 50%; background-color: #3b0764; color: #ffffff; font-size: 11px; line-height: 1; font-weight: 800; }
+.lp-li-text { color: #1f2937; }
+.lp-tasks-note { max-width: 760px; margin-top: 0px; margin-bottom: 64px; margin-left: auto; margin-right: auto; font-size: 14px; line-height: 1.5; color: #6b7280; text-align: center; }
+.lp-roles { max-width: 1000px; margin-left: auto; margin-right: auto; margin-bottom: 56px; text-align: center; }
+.lp-roles-title { margin-top: 0px; margin-bottom: 22px; font-size: 26px; line-height: 1.3; font-weight: 800; color: #150a26; }
+.lp-chips { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 12px; row-gap: 12px; }
+.lp-chip { padding-top: 11px; padding-bottom: 11px; padding-left: 18px; padding-right: 18px; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom-left-radius: 999px; border-bottom-right-radius: 999px; border-top-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-right-width: 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-right-style: solid; border-top-color: #e4ccf5; border-bottom-color: #e4ccf5; border-left-color: #e4ccf5; border-right-color: #e4ccf5; background-color: #ffffff; color: #3b0764; font-size: 15px; line-height: 1.3; font-weight: 600; }
+.lp-roles-cta { display: flex; flex-direction: column; align-items: center; max-width: 900px; margin-left: auto; margin-right: auto; text-align: center; }
+.lp-roles-cta-title { margin-top: 0px; margin-bottom: 26px; font-size: 30px; line-height: 1.25; font-weight: 700; color: #0b0b12; }
+@media screen and (max-width: 991px) {
+  .lp-tasks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-roles-cta-title { font-size: 26px; }
+}
+@media screen and (max-width: 767px) {
+  .lp-tasks { padding-top: 64px; padding-bottom: 64px; }
+  .lp-roles-title { font-size: 22px; }
+  .lp-roles-cta-title { font-size: 22px; }
+}
+@media screen and (max-width: 479px) {
+  .lp-tasks { padding-left: 16px; padding-right: 16px; }
+  .lp-tasks-grid { grid-template-columns: minmax(0, 1fr); }
+  .lp-chip { font-size: 14px; }
+}

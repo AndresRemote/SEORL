@@ -1,0 +1,130 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "@id": "https://www.remotelatinos.com/medical-virtual-assistant-services#service",
+      "name": "Medical Virtual Assistant Services",
+      "serviceType": "Medical virtual assistant staffing",
+      "description": "Remote Latinos recruits and places pre-vetted, HIPAA-trained medical virtual assistants from Latin America for US healthcare practices: scheduling, insurance verification, medical billing follow-up, EHR data entry and patient communication.",
+      "url": "https://www.remotelatinos.com/medical-virtual-assistant-services",
+      "provider": {
+        "@type": "Organization",
+        "name": "Remote Latinos",
+        "url": "https://www.remotelatinos.com/"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "United States"
+      },
+      "audience": {
+        "@type": "BusinessAudience",
+        "audienceType": "Healthcare practices and clinics"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.remotelatinos.com/medical-virtual-assistant-services#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is a medical virtual assistant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A medical virtual assistant is a remote professional who handles a healthcare practice's administrative work (scheduling, insurance verification, billing follow-up, EHR updates and patient communication) inside your systems and during your business hours."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What does a medical virtual assistant do?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Common tasks include booking and confirming appointments, verifying insurance and prior authorizations, submitting and following up on claims, updating EHR records, answering calls and messages, and coordinating referrals and recalls. They don't provide clinical care."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are medical virtual assistants HIPAA compliant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "They can be. Every assistant we place is trained on HIPAA basics, signs an NDA, and works inside your HIPAA-compliant systems with only the access their role needs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does a medical virtual assistant cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "With Remote Latinos, rates start around $4/hour for admin support and $5/hour for appointment setting. Specialized roles like medical billing cost more depending on experience. You can save up to 80% compared with a local hire."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I hire a medical virtual assistant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Book a call, review pre-vetted candidates within a few days, interview the ones you like, and hire. The full process usually takes 10 business days or less."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can a medical virtual assistant work in my EHR?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Your assistant logs in to the EHR, practice-management and phone systems you already use, with their own account and only the permissions their role needs. Tell us your software and we'll look for candidates who have used it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do medical virtual assistants work US hours?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most do. Latin America shares time zones with the US, so many assistants cover your clinic hours in real time. Confirm schedule expectations during the interview."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I hire a part-time medical virtual assistant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Part-time assistants usually work 15–25 hours per week; full-time assistants work 30–40 hours per week."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What if the assistant isn't the right fit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Talent Hunt hires come with a 6-week replacement guarantee that starts on your assistant's first working day. If they quit or are let go during that period, we replace them for free."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I pay my medical virtual assistant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You pay your assistant directly. Most clients pay monthly, but weekly or bi-weekly works too, and there are no agency markups on their rate."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.remotelatinos.com/medical-virtual-assistant-services#breadcrumbs",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://www.remotelatinos.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Medical Virtual Assistant Services",
+          "item": "https://www.remotelatinos.com/medical-virtual-assistant-services"
+        }
+      ]
+    }
+  ]
+}

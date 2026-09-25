@@ -1,0 +1,30 @@
+.lp-cost { padding-top: 88px; padding-bottom: 96px; padding-left: 24px; padding-right: 24px; background-color: #ffffff; background-image: radial-gradient(circle at 50% 0%, rgba(255, 212, 0, 0.10), rgba(255, 255, 255, 0) 55%); font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #150a26; }
+.lp-cost-inner { display: flex; flex-direction: column; align-items: center; max-width: 900px; margin-left: auto; margin-right: auto; text-align: center; }
+.lp-eyebrow-yellow { display: inline-block; margin-bottom: 26px; padding-top: 10px; padding-bottom: 10px; padding-left: 22px; padding-right: 22px; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom-left-radius: 999px; border-bottom-right-radius: 999px; border-top-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-right-width: 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-right-style: solid; border-top-color: #ffe066; border-bottom-color: #ffe066; border-left-color: #ffe066; border-right-color: #ffe066; background-color: #fffbea; box-shadow: 0 0 40px rgba(255, 212, 0, 0.25); color: #b88a00; font-size: 13px; line-height: 1.4; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; }
+.lp-cost-title { margin-top: 0px; margin-bottom: 20px; font-size: 48px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; color: #52525b; }
+.lp-hl-ink { color: #0b0b12; white-space: nowrap; }
+.lp-cost-sub { margin-top: 0px; margin-bottom: 40px; font-size: 20px; line-height: 1.5; color: #6b7280; }
+.lp-hl-yellow { padding-left: 4px; padding-right: 4px; background-image: linear-gradient(180deg, rgba(255, 255, 255, 0) 55%, #ffe066 55%); font-weight: 800; color: #0b0b12; }
+.lp-cost-card { display: flex; flex-direction: column; row-gap: 26px; width: 100%; margin-bottom: 44px; padding-top: 36px; padding-bottom: 36px; padding-left: 44px; padding-right: 44px; border-top-left-radius: 22px; border-top-right-radius: 22px; border-bottom-left-radius: 22px; border-bottom-right-radius: 22px; border-top-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-right-width: 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-right-style: solid; border-top-color: #fff3bf; border-bottom-color: #fff3bf; border-left-color: #fff3bf; border-right-color: #fff3bf; background-color: #ffffff; text-align: left; }
+.lp-cost-row { display: flex; align-items: flex-start; column-gap: 22px; }
+.lp-cost-icon { display: flex; justify-content: center; align-items: center; flex-shrink: 0; width: 36px; height: 36px; color: #eab308; }
+.lp-cost-body { display: flex; flex-direction: column; row-gap: 2px; }
+.lp-cost-label { font-size: 18px; line-height: 1.3; font-weight: 800; color: #27272a; }
+.lp-cost-desc { font-size: 15px; line-height: 1.4; color: #71717a; }
+.lp-btn-glow { display: inline-block; padding-top: 22px; padding-bottom: 22px; padding-left: 44px; padding-right: 44px; border-top-left-radius: 999px; border-top-right-radius: 999px; border-bottom-left-radius: 999px; border-bottom-right-radius: 999px; background-color: #ffffff; box-shadow: 0 18px 50px rgba(255, 212, 0, 0.45); color: #150a26; font-size: 19px; line-height: 1.2; font-weight: 800; text-decoration: none; transition: transform 200ms ease, box-shadow 200ms ease; }
+.lp-btn-glow:hover { transform: translateY(-2px); box-shadow: 0 22px 60px rgba(255, 212, 0, 0.6); color: #150a26; }
+@media screen and (max-width: 991px) {
+  .lp-cost-title { font-size: 40px; }
+}
+@media screen and (max-width: 767px) {
+  .lp-cost { padding-top: 64px; padding-bottom: 72px; }
+  .lp-cost-title { font-size: 32px; }
+  .lp-cost-card { padding-top: 26px; padding-bottom: 26px; padding-left: 24px; padding-right: 24px; }
+  .lp-btn-glow { padding-left: 28px; padding-right: 28px; font-size: 17px; }
+}
+@media screen and (max-width: 479px) {
+  .lp-cost { padding-left: 16px; padding-right: 16px; }
+  .lp-cost-title { font-size: 27px; }
+  .lp-hl-ink { white-space: normal; }
+  .lp-btn-glow { width: 100%; }
+}
